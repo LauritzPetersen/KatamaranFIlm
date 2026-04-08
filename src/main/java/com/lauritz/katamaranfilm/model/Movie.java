@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Movie {
     private int id;
-    private Integer tmdbId; // Integer (objekt) i stedet for int, da den kan være null i starten
+    private Integer tmdbId;
     private String title;
     private String genre;
     private int releaseYear;
@@ -15,6 +15,10 @@ public class Movie {
 
     private double averageScore = 0.0;
     private List<Rating> ratings = new ArrayList<>();
+
+    // Nye "lommer" til at vise hvem der foreslog den
+    private String addedByName;
+    private String addedByColor;
 
     public Movie() {}
 
@@ -59,4 +63,10 @@ public class Movie {
 
     public List<Rating> getRatings() { return ratings; }
     public void setRatings(List<Rating> ratings) { this.ratings = ratings; }
+
+    public String getAddedByName() { return addedByName; }
+    public void setAddedByName(String addedByName) { this.addedByName = addedByName; }
+
+    public String getAddedByColor() { return addedByColor; }
+    public void setAddedByColor(String addedByColor) { this.addedByColor = addedByColor; }
 }

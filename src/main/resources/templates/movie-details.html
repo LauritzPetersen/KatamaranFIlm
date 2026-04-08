@@ -34,6 +34,17 @@
 
         <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
 
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: left; margin-bottom: 30px;">
+            <h4 style="margin-top: 0;">Vores anmeldelser:</h4>
+            <p th:if="${movie.ratings.isEmpty()}" style="color: #777; font-style: italic;">Ingen har givet en score endnu.</p>
+
+            <div th:each="r : ${movie.ratings}" style="margin-bottom: 8px; display: flex; align-items: center;">
+                <span th:style="'display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:8px; background-color:' + ${r.userColor}"></span>
+                <strong th:text="${r.userName}" style="margin-right: 10px;">Navn</strong>
+                <span style="color: #ffc107; font-weight: bold;">⭐ <span th:text="${r.score}"></span></span>
+            </div>
+        </div>
+
         <h3>Hvad synes du om filmen?</h3>
 
         <div th:if="${errors != null}" class="error-box">

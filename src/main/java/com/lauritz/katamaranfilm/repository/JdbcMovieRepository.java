@@ -19,17 +19,28 @@ public class JdbcMovieRepository implements MovieRepository {
 
     @Override
     public List<Movie> findAllByStatus(String status) {
-        String sql = "SELECT * FROM movies WHERE status = ?";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> new Movie(
-                rs.getInt("id"),
-                rs.getObject("tmdb_id") != null ? rs.getInt("tmdb_id") : null, // Håndterer at den kan være tom (null)
-                rs.getString("title"),
-                rs.getString("genre"),
-                rs.getInt("release_year"),
-                rs.getString("poster_url"),
-                rs.getString("status"),
-                rs.getInt("added_by_user_id")
-        ), status);
+        // JOIN slår tabellerne sammen, så vi får "added_by" navnet med
+        String sql = "SELECT m.*, u.name AS added_by_name, u.color_code AS added_by_color " +
+                "FROM movies m " +
+                "JOIN users u ON m.added_by_user_id = u.id " +
+                "WHERE m.status = ?";
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            Movie m = new Movie();
+            m.setId(rs.getInt("id"));
+            m.setTmdbId(rs.getObject("tmdb_id") != null ? rs.getInt("tmdb_id") : null);
+            m.setTitle(rs.getString("title"));
+            m.setGenre(rs.getString("genre"));
+            m.setReleaseYear(rs.getInt("release_year"));
+            m.setPosterUrl(rs.getString("poster_url"));
+            m.setStatus(rs.getString("status"));
+            m.setAddedByUserId(rs.getInt("added_by_user_id"));
+
+            // Fyld de nye lommer
+            m.setAddedByName(rs.getString("added_by_name"));
+            m.setAddedByColor(rs.getString("added_by_color"));
+            return m;
+        }, status);
     }
 
     @Override
@@ -54,17 +65,27 @@ public class JdbcMovieRepository implements MovieRepository {
 
     @Override
     public Optional<Movie> findById(int id) {
-        String sql = "SELECT * FROM movies WHERE id = ?";
-        List<Movie> result = jdbcTemplate.query(sql, (rs, rowNum) -> new Movie(
-                rs.getInt("id"),
-                rs.getObject("tmdb_id") != null ? rs.getInt("tmdb_id") : null,
-                rs.getString("title"),
-                rs.getString("genre"),
-                rs.getInt("release_year"),
-                rs.getString("poster_url"),
-                rs.getString("status"),
-                rs.getInt("added_by_user_id")
-        ), id);
+        // Samme JOIN trick her, så vi kender navnet på detaljesiden
+        String sql = "SELECT m.*, u.name AS added_by_name, u.color_code AS added_by_color " +
+                "FROM movies m " +
+                "JOIN users u ON m.added_by_user_id = u.id " +
+                "WHERE m.id = ?";
+
+        List<Movie> result = jdbcTemplate.query(sql, (rs, rowNum) -> {
+            Movie m = new Movie();
+            m.setId(rs.getInt("id"));
+            m.setTmdbId(rs.getObject("tmdb_id") != null ? rs.getInt("tmdb_id") : null);
+            m.setTitle(rs.getString("title"));
+            m.setGenre(rs.getString("genre"));
+            m.setReleaseYear(rs.getInt("release_year"));
+            m.setPosterUrl(rs.getString("poster_url"));
+            m.setStatus(rs.getString("status"));
+            m.setAddedByUserId(rs.getInt("added_by_user_id"));
+
+            m.setAddedByName(rs.getString("added_by_name"));
+            m.setAddedByColor(rs.getString("added_by_color"));
+            return m;
+        }, id);
 
         return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));
     }

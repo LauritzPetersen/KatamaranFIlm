@@ -61,8 +61,13 @@ public class MovieService {
 
         if (movieOpt.isPresent()) {
             Movie movie = movieOpt.get();
-            // Udregn gennemsnittet for netop denne film!
+
+            // 1. Udregn gennemsnittet for netop denne film!
             movie.setAverageScore(ratingService.calculateAverage(movie.getId()));
+
+            // 2. HER ER DEN NYE LINJE: Hent alle anmeldelserne og sæt dem fast på filmen!
+            movie.setRatings(ratingService.getRatingsForMovie(movie.getId()));
+
             return Optional.of(movie);
         }
 

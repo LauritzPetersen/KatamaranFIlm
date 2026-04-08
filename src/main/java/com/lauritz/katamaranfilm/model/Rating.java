@@ -6,6 +6,10 @@ public class Rating {
     private int movieId;
     private Double score;
 
+    // De to nye "lommer" til at bære info op til HTML-siden
+    private String userName;
+    private String userColor;
+
     public Rating() {}
 
     public Rating(int id, int userId, int movieId, Double score) {
@@ -27,4 +31,10 @@ public class Rating {
 
     public Double getScore() { return score; }
     public void setScore(Double score) { this.score = score; }
+
+    public String getUserName() { return userName; }
+    public void setUserName(String userName) { this.userName = userName; }
+
+    public String getUserColor() { return userColor; }
+    public void setUserColor(String userColor) { this.userColor = userColor; }
 }

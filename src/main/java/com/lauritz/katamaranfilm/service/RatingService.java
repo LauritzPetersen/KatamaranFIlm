@@ -49,4 +49,8 @@ public class RatingService {
         double avg = sum / ratings.size();
         return Math.round(avg * 10.0) / 10.0; // Afrunder til én decimal (f.eks. 8.4)
     }
+
+    public List<Rating> getRatingsForMovie(int movieId) {
+        return ratingRepository.findAllByMovieId(movieId);
+    }
 }
