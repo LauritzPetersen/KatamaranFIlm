@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="da" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Log ind - Vores Filmliste</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 300px; text-align: center; }
+        input, select, button { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { background-color: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; }
+        .error { color: red; margin-bottom: 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="login-box">
+    <h1>Log ind 🎬</h1>
+
+    <div th:if="${error != null}" class="error">
+        <p th:text="${error}">Fejlbesked her</p>
+    </div>
+
+    <form th:action="@{/login}" method="post">
+        <label>Hvem er du?</label>
+        <select name="name" required>
+            <option value="" disabled selected>-- Vælg dit navn --</option>
+            <option th:each="u : ${users}" th:value="${u.name}" th:text="${u.name}"></option>
+        </select>
+
+        <label>Vennekode:</label>
+        <input type="password" name="password" placeholder="Indtast fælles kode" required>
+
+        <button type="submit">Log ind</button>
+    </form>
+
+    <p>Er du ikke på listen? <br><br> <a href="/register">Opret dig her</a></p>
+</div>
+
+</body>
+</html>

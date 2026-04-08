@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="da" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Opret Profil - Vores Filmliste</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .register-box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 350px; text-align: center; }
+        input, button { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { background-color: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
+        .error-box { background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; text-align: left; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="register-box">
+    <h1>Opret dig i klubben! 🍿</h1>
+
+    <div th:if="${errors != null}" class="error-box">
+        <strong>Hov, der var et problem:</strong>
+        <ul style="margin: 5px 0 0 15px; padding: 0;">
+            <li th:each="fejl : ${errors}" th:text="${fejl}">Fejlbesked</li>
+        </ul>
+    </div>
+
+    <form th:action="@{/register}" method="post" th:object="${user}">
+        <label style="display:block; text-align:left;">Dit Navn:</label>
+        <input type="text" th:field="*{name}" placeholder="F.eks. Peter" required>
+
+        <label style="display:block; text-align:left;">Vælg din farve:</label>
+        <input type="color" th:field="*{colorCode}" style="height: 50px; cursor: pointer;">
+
+        <label style="display:block; text-align:left;">Fælles Vennekode:</label>
+        <input type="password" name="providedPassword" placeholder="Kodeordet for at være med..." required>
+
+        <button type="submit">Opret Mig!</button>
+    </form>
+
+    <br>
+    <a href="/login">Tilbage til log ind</a>
+</div>
+
+</body>
+</html>
