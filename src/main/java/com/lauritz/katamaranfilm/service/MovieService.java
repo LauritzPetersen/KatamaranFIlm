@@ -28,14 +28,20 @@ public class MovieService {
         return movieRepository.findAllByStatus("WATCHLIST");
     }
 
-    // Tilføjer en film og sætter den loggede brugers ID på
     public ValidationResult addMovieToWatchlist(Movie movie, int userId) {
         ValidationResult result = validation.validateNewMovie(movie);
+
+        // TJEK EFTER DUBLETTER HER:
+        if (movie.getTmdbId() != null) {
+            if (movieRepository.findByTmdbId(movie.getTmdbId()).isPresent()) {
+                result.addError("Filmen er allerede på en af jeres lister!");
+                return result; // Stop!
+            }
+        }
 
         if (!result.hasErrors()) {
             movie.setStatus("WATCHLIST");
             movie.setAddedByUserId(userId);
-            // tmdbId og posterUrl er null indtil videre
             movieRepository.save(movie);
         }
         return result;

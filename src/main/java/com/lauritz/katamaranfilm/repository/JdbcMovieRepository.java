@@ -89,4 +89,30 @@ public class JdbcMovieRepository implements MovieRepository {
 
         return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));
     }
+
+    @Override
+    public Optional<Movie> findByTmdbId(int tmdbId) {
+        String sql = "SELECT m.*, u.name AS added_by_name, u.color_code AS added_by_color " +
+                "FROM movies m " +
+                "JOIN users u ON m.added_by_user_id = u.id " +
+                "WHERE m.tmdb_id = ?";
+
+        List<Movie> result = jdbcTemplate.query(sql, (rs, rowNum) -> {
+            Movie m = new Movie();
+            m.setId(rs.getInt("id"));
+            m.setTmdbId(rs.getObject("tmdb_id") != null ? rs.getInt("tmdb_id") : null);
+            m.setTitle(rs.getString("title"));
+            m.setGenre(rs.getString("genre"));
+            m.setReleaseYear(rs.getInt("release_year"));
+            m.setPosterUrl(rs.getString("poster_url"));
+            m.setStatus(rs.getString("status"));
+            m.setAddedByUserId(rs.getInt("added_by_user_id"));
+            m.setAddedByName(rs.getString("added_by_name"));
+            m.setAddedByColor(rs.getString("added_by_color"));
+            return m;
+        }, tmdbId);
+
+        return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));
+    }
+
 }

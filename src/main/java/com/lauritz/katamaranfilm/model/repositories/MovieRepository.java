@@ -10,4 +10,5 @@ public interface MovieRepository {
     void save(Movie movie);
     void updateStatus(int movieId, String newStatus);
     Optional<Movie> findById(int id);
+    Optional<Movie> findByTmdbId(int tmdbId);
 }

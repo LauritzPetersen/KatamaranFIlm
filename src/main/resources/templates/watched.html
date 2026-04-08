@@ -8,7 +8,8 @@
         .container { max-width: 800px; margin: auto; }
         .nav { text-align: right; margin-bottom: 20px; }
         .box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .movie-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        /* Læg mærke til 'gap: 15px;' herunder, som giver luft mellem billede og tekst */
+        .movie-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 15px; }
         .movie-item:last-child { border-bottom: none; }
         a.nav-link { margin-right: 15px; text-decoration: none; color: #007bff; font-weight: bold; }
     </style>
@@ -24,11 +25,34 @@
 
     <h1>Film vi har set 🏆</h1>
 
+    <div style="margin-bottom: 20px;">
+        <input type="text" id="localSearch" onkeyup="filterMovies()" placeholder="🔍 Find en film på listen..." style="width: 100%; padding: 12px; font-size: 1.1em; border-radius: 8px; border: 2px solid #ccc;">
+    </div>
+
+    <script>
+        function filterMovies() {
+            let input = document.getElementById('localSearch').value.toLowerCase();
+            let items = document.getElementsByClassName('movie-item');
+
+            for (let i = 0; i < items.length; i++) {
+                let text = items[i].innerText.toLowerCase();
+                if (text.includes(input)) {
+                    items[i].style.display = "flex";
+                } else {
+                    items[i].style.display = "none";
+                }
+            }
+        }
+    </script>
+
     <div class="box">
         <p th:if="${movies.isEmpty()}" style="color: #777;">I har ikke set nogen film endnu. Kom i gang!</p>
 
         <div th:each="movie : ${movies}" class="movie-item">
-            <div>
+
+            <img th:if="${movie.posterUrl != null}" th:src="${movie.posterUrl}" style="width: 60px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+
+            <div style="flex-grow: 1;">
                 <a th:href="@{/watched/{id}(id=${movie.id})}" style="text-decoration: none; color: black;">
                     <strong th:text="${movie.title}" style="font-size: 1.2em;">Titel</strong>
                 </a>

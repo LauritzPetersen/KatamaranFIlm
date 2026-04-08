@@ -22,6 +22,12 @@ public class AuthController {
         this.userService = userService;
     }
 
+    @GetMapping("/")
+    public String showHomePage() {
+        // Watchlist-controlleren tjekker selv, om de er logget ind, og sender dem ellers til /login
+        return "redirect:/watchlist";
+    }
+
     // --- LOGIN ---
     @GetMapping("/login")
     public String showLoginForm(Model model) {
@@ -68,4 +74,5 @@ public class AuthController {
         session.invalidate();
         return "redirect:/login";
     }
+
 }
