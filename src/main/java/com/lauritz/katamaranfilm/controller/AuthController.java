@@ -35,7 +35,7 @@ public class AuthController {
 
         if (userOpt.isPresent()) {
             session.setAttribute("loggedInUser", userOpt.get());
-            return "redirect:/";
+            return "redirect:/watchlist";
         } else {
             model.addAttribute("error", "Forkert vennekode! Prøv igen.");
             model.addAttribute("users", userService.getAllUsers());

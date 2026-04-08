@@ -25,7 +25,7 @@
 
     <form th:action="@{/register}" method="post" th:object="${user}">
         <label style="display:block; text-align:left;">Dit Navn:</label>
-        <input type="text" th:field="*{name}" placeholder="F.eks. Peter" required>
+        <input type="text" th:field="*{name}" placeholder="F.eks. Klamming" required>
 
         <label style="display:block; text-align:left;">Vælg din farve:</label>
         <input type="color" th:field="*{colorCode}" style="height: 50px; cursor: pointer;">

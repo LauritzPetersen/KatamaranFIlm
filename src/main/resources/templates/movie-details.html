@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="da" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${movie.title} + ' - Detaljer'"></title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        .nav { text-align: right; margin-bottom: 20px; }
+        .box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; }
+        input, button { padding: 10px; margin: 10px 0; font-size: 1.1em; border-radius: 4px; border: 1px solid #ccc; }
+        button { background-color: #ffc107; color: black; border: none; font-weight: bold; cursor: pointer; }
+        .error-box { background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 15px; text-align: left;}
+        a.nav-link { margin-right: 15px; text-decoration: none; color: #007bff; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="nav">
+        <a href="/watched" class="nav-link">⬅️ Tilbage til Sete film</a>
+        <strong>Logget ind som: <span th:text="${loggedInUser.name}"></span></strong> |
+        <a href="/logout">Log ud</a>
+    </div>
+
+    <div class="box">
+        <h1 th:text="${movie.title}" style="margin-bottom: 5px;">Film Titel</h1>
+        <p style="color: #666; margin-top: 0;" th:text="${movie.genre} + ' | Udgivet: ' + ${movie.releaseYear}">Genre og År</p>
+
+        <h2 style="font-size: 3em; margin: 20px 0; color: #333;">
+            ⭐ <span th:text="${movie.averageScore > 0 ? movie.averageScore : '--'}"></span> <span style="font-size: 0.4em; color: #888;">/ 10</span>
+        </h2>
+        <p style="color: #888;">Gennemsnitsscore</p>
+
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+
+        <h3>Hvad synes du om filmen?</h3>
+
+        <div th:if="${errors != null}" class="error-box">
+            <ul style="margin: 0; padding-left: 20px;">
+                <li th:each="fejl : ${errors}" th:text="${fejl}">Fejlbesked</li>
+            </ul>
+        </div>
+
+        <form th:action="@{/watched/{id}/rate(id=${movie.id})}" method="post" th:object="${newRating}">
+            <label style="font-weight: bold; display: block;">Din score (1.0 til 10.0):</label>
+            <input type="number" step="0.1" min="1.0" max="10.0" th:field="*{score}" placeholder="f.eks. 8.5" required style="width: 120px; text-align: center;">
+            <br>
+            <button type="submit">Gem min score!</button>
+        </form>
+
+    </div>
+</div>
+
+</body>
+</html>

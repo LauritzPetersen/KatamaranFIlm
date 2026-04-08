@@ -1,7 +1,3 @@
-DROP TABLE IF EXISTS rating;
-DROP TABLE IF EXISTS movie;
-DROP TABLE IF EXISTS user;
-
 DROP TABLE IF EXISTS ratings;
 DROP TABLE IF EXISTS movies;
 DROP TABLE IF EXISTS users;
@@ -32,5 +28,4 @@ CREATE TABLE ratings (
                          FOREIGN KEY (user_id) REFERENCES users(id),
                          FOREIGN KEY (movie_id) REFERENCES movies(id),
                          UNIQUE (user_id, movie_id)
-);
 );

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="da" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Watchlist - Vores Filmliste</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        .nav { text-align: right; margin-bottom: 20px; }
+        .box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        input, select, button { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; border-radius: 4px; border: 1px solid #ccc;}
+        button { background-color: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
+        .movie-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .movie-item:last-child { border-bottom: none; }
+        .error-box { background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="nav">
+        <a href="/watched" style="margin-right: 15px; text-decoration: none; color: #007bff; font-weight: bold;">➡️ Se film vi har set</a>
+        <strong>Logget ind som: <span th:text="${loggedInUser.name}"></span></strong> |
+        <a href="/logout">Log ud</a>
+    </div>
+
+    <h1>Vores Watchlist 🍿</h1>
+
+    <div class="box" style="background-color: #e9ecef;">
+        <h3>Tilføj en film manuelt:</h3>
+
+        <div th:if="${errors != null}" class="error-box">
+            <ul style="margin: 0; padding-left: 20px;">
+                <li th:each="fejl : ${errors}" th:text="${fejl}">Fejlbesked</li>
+            </ul>
+        </div>
+
+        <form th:action="@{/watchlist/add}" method="post" th:object="${newMovie}">
+            <label>Titel:</label>
+            <input type="text" th:field="*{title}" placeholder="F.eks. The Matrix" required>
+
+            <label>Genre:</label>
+            <input type="text" th:field="*{genre}" placeholder="F.eks. Sci-Fi">
+
+            <label>Årstal:</label>
+            <input type="number" th:field="*{releaseYear}" min="1888" placeholder="F.eks. 1999" required>
+
+            <button type="submit">Tilføj til listen</button>
+        </form>
+    </div>
+
+    <div class="box">
+        <h3>Film vi gerne vil se:</h3>
+
+        <p th:if="${movies.isEmpty()}" style="color: #777;">Listen er tom! Tilføj jeres første film ovenfor.</p>
+
+        <div th:each="movie : ${movies}" class="movie-item">
+
+            <div>
+                <strong th:text="${movie.title}" style="font-size: 1.2em;">Titel</strong>
+                <span th:text="' (' + ${movie.releaseYear} + ')'" style="color: #666;"> (År)</span>
+                <br>
+                <span style="font-size: 0.9em; color: #555;" th:text="${movie.genre}">Genre</span>
+            </div>
+
+            <form th:action="@{/watchlist/mark-watched}" method="post" style="margin: 0;">
+                <input type="hidden" name="movieId" th:value="${movie.id}">
+                <button type="submit" style="background-color: #28a745; width: auto; padding: 8px 15px;">Marker som set ✔️</button>
+            </form>
+
+        </div>
+    </div>
+
+</div> </body>
+</html>

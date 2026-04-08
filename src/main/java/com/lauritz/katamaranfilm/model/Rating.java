@@ -4,11 +4,11 @@ public class Rating {
     private int id;
     private int userId;
     private int movieId;
-    private double score;
+    private Double score;
 
     public Rating() {}
 
-    public Rating(int id, int userId, int movieId, double score) {
+    public Rating(int id, int userId, int movieId, Double score) {
         this.id = id;
         this.userId = userId;
         this.movieId = movieId;
@@ -25,6 +25,6 @@ public class Rating {
     public int getMovieId() { return movieId; }
     public void setMovieId(int movieId) { this.movieId = movieId; }
 
-    public double getScore() { return score; }
-    public void setScore(double score) { this.score = score; }
+    public Double getScore() { return score; }
+    public void setScore(Double score) { this.score = score; }
 }

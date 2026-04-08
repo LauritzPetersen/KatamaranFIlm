@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="da" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Sete Film - Vores Filmliste</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        .nav { text-align: right; margin-bottom: 20px; }
+        .box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .movie-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .movie-item:last-child { border-bottom: none; }
+        a.nav-link { margin-right: 15px; text-decoration: none; color: #007bff; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="nav">
+        <a href="/watchlist" class="nav-link">⬅️ Gå til Watchlist</a>
+        <strong>Logget ind som: <span th:text="${loggedInUser.name}"></span></strong> |
+        <a href="/logout">Log ud</a>
+    </div>
+
+    <h1>Film vi har set 🏆</h1>
+
+    <div class="box">
+        <p th:if="${movies.isEmpty()}" style="color: #777;">I har ikke set nogen film endnu. Kom i gang!</p>
+
+        <div th:each="movie : ${movies}" class="movie-item">
+            <div>
+                <a th:href="@{/watched/{id}(id=${movie.id})}" style="text-decoration: none; color: black;">
+                    <strong th:text="${movie.title}" style="font-size: 1.2em;">Titel</strong>
+                </a>
+                <span th:text="' (' + ${movie.releaseYear} + ')'" style="color: #666;"> (År)</span>
+                <br>
+                <span style="font-size: 0.9em; color: #555;" th:text="${movie.genre}">Genre</span>
+            </div>
+
+            <div style="font-size: 1.2em; font-weight: bold; color: #ffc107;">
+                ⭐ <span th:text="${movie.averageScore > 0 ? movie.averageScore : '--'}"></span> / 10
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
