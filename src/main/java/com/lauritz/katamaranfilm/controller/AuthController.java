@@ -36,7 +36,7 @@ public class AuthController {
 
         if (userOpt.isPresent()) {
             session.setAttribute("loggedInUser", userOpt.get());
-            return "redirect:/watchlist";
+            return "redirect:/";
         } else {
             model.addAttribute("error", "Forkert vennekode! Prøv igen.");
             model.addAttribute("users", userService.getAllUsers());
@@ -60,7 +60,7 @@ public class AuthController {
             return "register";
         }
 
-        return "redirect:/login";
+        return "redirect:/";
     }
 
     // --- LOG UD ---
