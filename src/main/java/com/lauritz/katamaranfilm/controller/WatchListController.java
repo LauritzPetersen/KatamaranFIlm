@@ -8,11 +8,10 @@ import com.lauritz.katamaranfilm.service.TmdbService;
 import com.lauritz.katamaranfilm.service.UserService;
 import com.lauritz.katamaranfilm.service.validering.ValidationResult;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -20,7 +19,7 @@ import java.util.List;
 public class WatchListController {
 
     private final MovieService movieService;
-    private final UserService userService; // Tilføjet UserService
+    private final UserService userService;
 
     public WatchListController(MovieService movieService, UserService userService) {
         this.movieService = movieService;
@@ -32,22 +31,39 @@ public class WatchListController {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) return "redirect:/login";
 
-        model.addAttribute("movies", movieService.getWatchlist());
-        model.addAttribute("users", userService.getAllUsers()); // Henter alle brugere til opdeling!
+        List<Movie> watchlist = movieService.getWatchlist();
+        List<User> users = userService.getAllUsers();
+
+        java.util.Map<User, java.util.List<Movie>> userMoviesMap = new java.util.LinkedHashMap<>();
+        for (User u : users) {
+            java.util.List<Movie> userMovies = new java.util.ArrayList<>();
+            for (Movie m : watchlist) {
+                if (m.getAddedByUserId() == u.getId()) {
+                    userMovies.add(m);
+                }
+            }
+            if (!userMovies.isEmpty()) {
+                userMoviesMap.put(u, userMovies);
+            }
+        }
+
+        model.addAttribute("userMoviesMap", userMoviesMap);
+        model.addAttribute("movies", watchlist);
         model.addAttribute("loggedInUser", loggedInUser);
 
         return "watchlist";
     }
 
     @PostMapping("/watchlist/add-tmdb")
-    public String addTmdbMovie(@RequestParam int tmdbId, @RequestParam String title,
-                               @RequestParam(required = false) String releaseDate,
-                               @RequestParam(required = false) String posterUrl,
-                               @RequestParam(required = false) String genre,
-                               HttpSession session) {
+    @ResponseBody // Fortæller Spring, at vi ikke vil reloade en side, men bare sende data tilbage
+    public ResponseEntity<String> addTmdbMovie(@RequestParam int tmdbId, @RequestParam String title,
+                                               @RequestParam(required = false) String releaseDate,
+                                               @RequestParam(required = false) String posterUrl,
+                                               @RequestParam(required = false) String genre,
+                                               HttpSession session) {
 
         User loggedInUser = (User) session.getAttribute("loggedInUser");
-        if (loggedInUser == null) return "redirect:/login";
+        if (loggedInUser == null) return ResponseEntity.status(401).body("Du er ikke logget ind!");
 
         int year = 2000;
         if (releaseDate != null && releaseDate.length() >= 4) {
@@ -63,20 +79,23 @@ public class WatchListController {
 
         ValidationResult result = movieService.addMovieToWatchlist(movie, loggedInUser.getId());
         if (result.hasErrors()) {
-            return "redirect:/?error=Filmen findes allerede i jeres lister!";
+            return ResponseEntity.badRequest().body("🚨 Filmen er allerede på en af jeres lister!");
         }
-        return "redirect:/watchlist";
+
+        return ResponseEntity.ok("✅ " + title + " blev tilføjet!");
     }
 
     @PostMapping("/watchlist/mark-watched")
-    public String markAsWatched(@RequestParam int movieId) {
+    @ResponseBody
+    public ResponseEntity<String> markAsWatched(@RequestParam int movieId) {
         movieService.markMovieAsWatched(movieId);
-        return "redirect:/watched"; // Går nu direkte til "Sete film" efter den er markeret!
+        return ResponseEntity.ok("✔️ Filmen er markeret som set!");
     }
 
     @PostMapping("/watchlist/delete")
-    public String deleteFromWatchlist(@RequestParam int movieId) {
+    @ResponseBody
+    public ResponseEntity<String> deleteFromWatchlist(@RequestParam int movieId) {
         movieService.deleteMovie(movieId);
-        return "redirect:/watchlist";
+        return ResponseEntity.ok("🗑️ Filmen er slettet fra listen!");
     }
 }

@@ -12,6 +12,13 @@
         .container { padding: 20px 40px; }
         h2 { margin-bottom: 5px; font-size: 1.5em; text-shadow: 1px 1px 2px black; border-left: 4px solid; padding-left: 10px; }
 
+        /* Vores nye filter bar */
+        .filter-bar { display: flex; gap: 15px; margin-bottom: 30px; justify-content: center; }
+        .filter-bar input, .filter-bar select { padding: 12px 20px; border-radius: 30px; border: none; background: rgba(255,255,255,0.1); color: white; outline: none; font-size: 1.1em; }
+        .filter-bar input:focus, .filter-bar select:focus { background: rgba(255,255,255,0.2); }
+        .filter-bar select { cursor: pointer; }
+        .filter-bar select option { background: #333; color: white; }
+
         .row-wrapper { position: relative; margin-bottom: 40px; }
         .movie-row { display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 15px; padding: 20px 0; }
         .movie-row::-webkit-scrollbar { display: none; }
@@ -26,7 +33,6 @@
         .action-btn { background-color: #28a745; color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
         .action-btn:hover { background-color: #218838; }
 
-        /* Slette Krydset X */
         .delete-x { position: absolute; top: -10px; right: -10px; background: #e50914; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; font-weight: bold; font-size: 1em; cursor: pointer; z-index: 15; opacity: 0; transition: opacity 0.3s, transform 0.2s; display: flex; justify-content: center; align-items: center;}
         .movie-card:hover .delete-x { opacity: 1; }
         .delete-x:hover { transform: scale(1.2); }
@@ -53,54 +59,70 @@
 </div>
 
 <div class="container">
-    <h1 style="text-align: center; margin-bottom: 40px;">Vores Fælles Watchlist 🍿</h1>
+    <h1 style="text-align: center; margin-bottom: 20px;">Vores Fælles Watchlist 🍿</h1>
+
+    <div class="filter-bar" th:if="${!movies.isEmpty()}">
+        <input type="text" id="localSearch" onkeyup="filterLocalMovies()" placeholder="🔍 Søg på titel, årstal..." style="width: 300px;">
+
+        <select id="genreFilter" onchange="filterLocalMovies()">
+            <option value="">Alle Genrer</option>
+            <option value="Action">Action</option>
+            <option value="Eventyr">Eventyr</option>
+            <option value="Animation">Animation</option>
+            <option value="Komedie">Komedie</option>
+            <option value="Krimi">Krimi</option>
+            <option value="Dokumentar">Dokumentar</option>
+            <option value="Drama">Drama</option>
+            <option value="Familie">Familie</option>
+            <option value="Fantasy">Fantasy</option>
+            <option value="Gyser">Gyser</option>
+            <option value="Romantik">Romantik</option>
+            <option value="Sci-Fi">Sci-Fi</option>
+            <option value="Thriller">Thriller</option>
+        </select>
+    </div>
 
     <div th:if="${movies.isEmpty()}" style="text-align: center; color: #888;">
         <h2>Listen er tom!</h2>
         <a href="/" style="color: #e50914;">Gå til forsiden for at finde film</a>
     </div>
 
-    <div th:each="user, stat : ${users}">
+    <div th:each="entry, stat : ${userMoviesMap}" class="user-section">
+        <h2 th:text="${entry.key.name} + 's Valg'" th:style="'border-color: ' + (${entry.key.colorCode != null} ? ${entry.key.colorCode} : '#ccc')"></h2>
 
-        <th:block th:with="userMovies=${movies.?[addedByUserId == __${user.id}__]}">
+        <div class="row-wrapper">
+            <button class="scroll-btn scroll-left" th:onclick="'scrollRow(\'row-' + ${stat.index} + '\', \'left\')'">❮</button>
 
-            <div th:if="${!userMovies.isEmpty()}">
-                <h2 th:text="${user.name}s Valg" th:style="'border-color: ' + ${user.colorCode}"></h2>
+            <div class="movie-row" th:id="'row-' + ${stat.index}">
+                <div th:each="movie : ${entry.value}" class="movie-card">
 
-                <div class="row-wrapper">
-                    <button class="scroll-btn scroll-left" th:onclick="'scrollRow(\'row-' + ${stat.index} + '\', \'left\')'">❮</button>
+                    <form th:action="@{/watchlist/delete}" method="post" class="ajax-form remove-on-success" data-confirm="Vil du slette denne film helt fra listen?">
+                        <input type="hidden" name="movieId" th:value="${movie.id}">
+                        <button type="submit" class="delete-x" title="Slet film">✖</button>
+                    </form>
 
-                    <div class="movie-row" th:id="'row-' + ${stat.index}">
-                        <div th:each="movie : ${userMovies}" class="movie-card">
+                    <img th:if="${movie.posterUrl != null}" th:src="${movie.posterUrl}" class="movie-poster">
+                    <div th:unless="${movie.posterUrl != null}" class="movie-poster" style="background: #333; display: flex; justify-content: center; align-items: center; text-align: center; padding: 10px;" th:text="${movie.title}"></div>
 
-                            <form th:action="@{/watchlist/delete}" method="post" onsubmit="return confirm('Vil du slette denne film helt fra listen?');">
-                                <input type="hidden" name="movieId" th:value="${movie.id}">
-                                <button type="submit" class="delete-x" title="Slet film">✖</button>
-                            </form>
+                    <div class="card-overlay">
+                        <strong th:text="${movie.title}"></strong>
+                        <span th:text="${movie.releaseYear}" style="font-size: 0.8em; color: #aaa;"></span>
+                        <span th:text="${movie.genre}" style="font-size: 0.8em; color: #ffc107; margin-top: 5px;"></span>
 
-                            <img th:if="${movie.posterUrl != null}" th:src="${movie.posterUrl}" class="movie-poster">
-                            <div th:unless="${movie.posterUrl != null}" class="movie-poster" style="background: #333;" th:text="${movie.title}"></div>
-
-                            <div class="card-overlay">
-                                <strong th:text="${movie.title}"></strong>
-                                <span th:text="${movie.releaseYear}" style="font-size: 0.8em; color: #aaa;"></span>
-                                <span th:text="${movie.genre}" style="font-size: 0.8em; color: #ffc107; margin-top: 5px;"></span>
-
-                                <form th:action="@{/watchlist/mark-watched}" method="post" style="width: 100%;">
-                                    <input type="hidden" name="movieId" th:value="${movie.id}">
-                                    <button type="submit" class="action-btn">✔️ Marker som Set</button>
-                                </form>
-                            </div>
-                        </div>
+                        <form th:action="@{/watchlist/mark-watched}" method="post" class="ajax-form remove-on-success" style="width: 100%;">
+                            <input type="hidden" name="movieId" th:value="${movie.id}">
+                            <button type="submit" class="action-btn">✔️ Marker som Set</button>
+                        </form>
                     </div>
-
-                    <button class="scroll-btn scroll-right" th:onclick="'scrollRow(\'row-' + ${stat.index} + '\', \'right\')'">❯</button>
                 </div>
             </div>
 
-        </th:block>
+            <button class="scroll-btn scroll-right" th:onclick="'scrollRow(\'row-' + ${stat.index} + '\', \'right\')'">❯</button>
+        </div>
     </div>
 </div>
+
+<div id="toast-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px;"></div>
 
 <script>
     function scrollRow(rowId, direction) {
@@ -108,6 +130,78 @@
         const scrollAmount = 600;
         if (direction === 'left') row.scrollLeft -= scrollAmount;
         else row.scrollLeft += scrollAmount;
+    }
+
+    // --- SØGE OG GENRE FILTER MAGI ---
+    function filterLocalMovies() {
+        const textInput = document.getElementById('localSearch').value.toLowerCase();
+        const genreInput = document.getElementById('genreFilter').value.toLowerCase();
+        const userSections = document.querySelectorAll('.user-section');
+
+        userSections.forEach(section => {
+            const cards = section.querySelectorAll('.movie-card');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const text = card.innerText.toLowerCase();
+                const matchesText = text.includes(textInput);
+                const matchesGenre = genreInput === "" || text.includes(genreInput);
+
+                if (matchesText && matchesGenre) {
+                    card.style.display = 'block'; // Vis kortet
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none'; // Skjul kortet
+                }
+            });
+
+            // Skjul hele brugerens række inkl. deres navn, hvis de ingen film har der matcher!
+            if (visibleCount === 0) {
+                section.style.display = 'none';
+            } else {
+                section.style.display = 'block';
+            }
+        });
+    }
+
+    // --- AJAX MAGI ---
+    document.querySelectorAll('.ajax-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (this.hasAttribute('data-confirm') && !confirm(this.getAttribute('data-confirm'))) return;
+
+            fetch(this.action, { method: this.method, body: new URLSearchParams(new FormData(this)) })
+                .then(response => {
+                    if (response.ok) {
+                        response.text().then(msg => showToast(msg, '#28a745'));
+                        if (this.classList.contains('remove-on-success')) {
+                            const card = this.closest('.movie-card');
+                            card.style.opacity = '0';
+                            setTimeout(() => card.style.display = 'none', 300);
+                        }
+                    } else {
+                        response.text().then(msg => showToast(msg, '#e50914'));
+                    }
+                }).catch(err => showToast("Noget gik galt", '#e50914'));
+        });
+    });
+
+    function showToast(message, color) {
+        const toast = document.createElement('div');
+        toast.innerText = message;
+        toast.style.background = color;
+        toast.style.color = 'white';
+        toast.style.padding = '15px 20px';
+        toast.style.borderRadius = '8px';
+        toast.style.boxShadow = '0 4px 6px rgba(0,0,0,0.5)';
+        toast.style.fontWeight = 'bold';
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s, transform 0.3s';
+        toast.style.transform = 'translateY(20px)';
+
+        document.getElementById('toast-container').appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; }, 10);
+        setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(20px)'; setTimeout(() => toast.remove(), 300); }, 3000);
     }
 </script>
 

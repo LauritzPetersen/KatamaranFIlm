@@ -11,8 +11,15 @@
 
         .container { padding: 20px 40px; }
 
+        /* Vores nye filter bar */
+        .filter-bar { display: flex; gap: 15px; margin-bottom: 30px; justify-content: center; }
+        .filter-bar input, .filter-bar select { padding: 12px 20px; border-radius: 30px; border: none; background: rgba(255,255,255,0.1); color: white; outline: none; font-size: 1.1em; }
+        .filter-bar input:focus, .filter-bar select:focus { background: rgba(255,255,255,0.2); }
+        .filter-bar select { cursor: pointer; }
+        .filter-bar select option { background: #333; color: white; }
+
         .row-wrapper { position: relative; margin-bottom: 40px; }
-        .movie-row { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px 0; justify-content: center;} /* Her bruger vi wrap i stedet for scroll, da de skal vises i et stort grid ligesom "My List" på Netflix */
+        .movie-row { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px 0; justify-content: center;}
 
         .movie-card { width: 200px; position: relative; border-radius: 8px; transition: transform 0.3s; background: #222; }
         .movie-card:hover { transform: scale(1.1); z-index: 10; box-shadow: 0 10px 20px rgba(0,0,0,0.8); }
@@ -24,7 +31,6 @@
         .action-btn { background-color: #ffc107; color: black; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 15px; text-decoration: none;}
         .action-btn:hover { background-color: #e0a800; }
 
-        /* Scoren der sidder permanent oppe i hjørnet! */
         .score-badge { position: absolute; top: 10px; left: -10px; background: #ffc107; color: black; font-weight: bold; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.5); z-index: 5; font-size: 1.1em;}
 
         .delete-x { position: absolute; top: -10px; right: -10px; background: #e50914; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; font-weight: bold; font-size: 1em; cursor: pointer; z-index: 15; opacity: 0; transition: opacity 0.3s, transform 0.2s; display: flex; justify-content: center; align-items: center;}
@@ -48,7 +54,28 @@
 </div>
 
 <div class="container">
-    <h1 style="text-align: center; margin-bottom: 40px;">Film Vi Har Set 🏆</h1>
+    <h1 style="text-align: center; margin-bottom: 20px;">Film Vi Har Set 🏆</h1>
+
+    <div class="filter-bar" th:if="${!movies.isEmpty()}">
+        <input type="text" id="localSearch" onkeyup="filterLocalMovies()" placeholder="🔍 Søg på titel, årstal..." style="width: 300px;">
+
+        <select id="genreFilter" onchange="filterLocalMovies()">
+            <option value="">Alle Genrer</option>
+            <option value="Action">Action</option>
+            <option value="Eventyr">Eventyr</option>
+            <option value="Animation">Animation</option>
+            <option value="Komedie">Komedie</option>
+            <option value="Krimi">Krimi</option>
+            <option value="Dokumentar">Dokumentar</option>
+            <option value="Drama">Drama</option>
+            <option value="Familie">Familie</option>
+            <option value="Fantasy">Fantasy</option>
+            <option value="Gyser">Gyser</option>
+            <option value="Romantik">Romantik</option>
+            <option value="Sci-Fi">Sci-Fi</option>
+            <option value="Thriller">Thriller</option>
+        </select>
+    </div>
 
     <div th:if="${movies.isEmpty()}" style="text-align: center; color: #888;">
         <h2>I har ikke set nogen film endnu.</h2>
@@ -60,7 +87,7 @@
             <div class="score-badge" th:if="${movie.averageScore > 0}">⭐ <span th:text="${movie.averageScore}"></span></div>
             <div class="score-badge" th:unless="${movie.averageScore > 0}" style="background: #ccc;">Ingen scores</div>
 
-            <form th:action="@{/watched/delete}" method="post" onsubmit="return confirm('Vil du slette filmen OG alle jeres anmeldelser af den permanent?');">
+            <form th:action="@{/watched/delete}" method="post" class="ajax-form remove-on-success" data-confirm="Vil du slette filmen OG alle jeres anmeldelser af den permanent?">
                 <input type="hidden" name="movieId" th:value="${movie.id}">
                 <button type="submit" class="delete-x" title="Slet permanent">✖</button>
             </form>
@@ -72,11 +99,76 @@
                 <strong th:text="${movie.title}"></strong>
                 <span th:text="${movie.releaseYear}" style="font-size: 0.8em; color: #aaa;"></span>
 
+                <span th:text="${movie.genre}" style="font-size: 0.8em; color: #ffc107; margin-top: 5px;"></span>
+
                 <a class="action-btn" th:href="@{/watched/{id}(id=${movie.id})}">Afgiv Score ✏️</a>
             </div>
         </div>
     </div>
 </div>
+
+<div id="toast-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px;"></div>
+
+<script>
+    // --- SØGE OG GENRE FILTER MAGI ---
+    function filterLocalMovies() {
+        const textInput = document.getElementById('localSearch').value.toLowerCase();
+        const genreInput = document.getElementById('genreFilter').value.toLowerCase();
+        const cards = document.querySelectorAll('.movie-card');
+
+        cards.forEach(card => {
+            const text = card.innerText.toLowerCase();
+            const matchesText = text.includes(textInput);
+            const matchesGenre = genreInput === "" || text.includes(genreInput);
+
+            if (matchesText && matchesGenre) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    // --- AJAX MAGI ---
+    document.querySelectorAll('.ajax-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (this.hasAttribute('data-confirm') && !confirm(this.getAttribute('data-confirm'))) return;
+
+            fetch(this.action, { method: this.method, body: new URLSearchParams(new FormData(this)) })
+                .then(response => {
+                    if (response.ok) {
+                        response.text().then(msg => showToast(msg, '#28a745'));
+                        if (this.classList.contains('remove-on-success')) {
+                            const card = this.closest('.movie-card');
+                            card.style.opacity = '0';
+                            setTimeout(() => card.style.display = 'none', 300);
+                        }
+                    } else {
+                        response.text().then(msg => showToast(msg, '#e50914'));
+                    }
+                }).catch(err => showToast("Noget gik galt", '#e50914'));
+        });
+    });
+
+    function showToast(message, color) {
+        const toast = document.createElement('div');
+        toast.innerText = message;
+        toast.style.background = color;
+        toast.style.color = 'white';
+        toast.style.padding = '15px 20px';
+        toast.style.borderRadius = '8px';
+        toast.style.boxShadow = '0 4px 6px rgba(0,0,0,0.5)';
+        toast.style.fontWeight = 'bold';
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s, transform 0.3s';
+        toast.style.transform = 'translateY(20px)';
+
+        document.getElementById('toast-container').appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; }, 10);
+        setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(20px)'; setTimeout(() => toast.remove(), 300); }, 3000);
+    }
+</script>
 
 </body>
 </html>

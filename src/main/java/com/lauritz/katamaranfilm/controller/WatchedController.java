@@ -1,13 +1,15 @@
 package com.lauritz.katamaranfilm.controller;
 
+import com.lauritz.katamaranfilm.model.Movie;
 import com.lauritz.katamaranfilm.model.User;
 import com.lauritz.katamaranfilm.service.MovieService;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Controller
 public class WatchedController {
@@ -19,21 +21,22 @@ public class WatchedController {
     }
 
     @GetMapping("/watched")
-    public String showWatchedList(Model model, HttpSession session) {
+    public String showWatchedMovies(Model model, HttpSession session) {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
-        if (loggedInUser == null) {
-            return "redirect:/login";
-        }
+        if (loggedInUser == null) return "redirect:/login";
 
-        model.addAttribute("movies", movieService.getWatchedMovies());
+        List<Movie> watchedMovies = movieService.getWatchedMovies();
+
+        model.addAttribute("movies", watchedMovies);
         model.addAttribute("loggedInUser", loggedInUser);
 
         return "watched";
     }
 
     @PostMapping("/watched/delete")
-    public String deleteFromWatched(@RequestParam int movieId) {
+    @ResponseBody
+    public ResponseEntity<String> deleteFromWatched(@RequestParam int movieId) {
         movieService.deleteMovie(movieId);
-        return "redirect:/watched";
+        return ResponseEntity.ok("🗑️ Filmen (og anmeldelser) er slettet permanent!");
     }
 }
