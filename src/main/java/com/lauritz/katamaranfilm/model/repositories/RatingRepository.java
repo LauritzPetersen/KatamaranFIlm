@@ -7,4 +7,5 @@ import java.util.List;
 public interface RatingRepository {
     void save(Rating rating);
     List<Rating> findAllByMovieId(int movieId);
+    void deleteAllByMovieId(int movieId);
 }

@@ -79,4 +79,12 @@ public class MovieService {
 
         return Optional.empty(); // Hvis filmen ikke findes
     }
+
+    public void deleteMovie(int movieId) {
+        // Vi skal fjerne anmeldelserne FØRST, ellers brokker databasen sig!
+        ratingService.deleteRatingsForMovie(movieId);
+
+        // Når de er væk, kan vi trygt slette filmen
+        movieRepository.deleteById(movieId);
+    }
 }

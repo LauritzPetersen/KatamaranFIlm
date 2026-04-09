@@ -115,4 +115,9 @@ public class JdbcMovieRepository implements MovieRepository {
         return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));
     }
 
+    @Override
+    public void deleteById(int id) {
+        String sql = "DELETE FROM movies WHERE id = ?";
+        jdbcTemplate.update(sql, id);
+    }
 }

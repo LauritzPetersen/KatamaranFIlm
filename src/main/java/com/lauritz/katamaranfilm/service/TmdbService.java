@@ -12,31 +12,42 @@ import java.util.List;
 @Service
 public class TmdbService {
 
-    // Henter din nøgle fra application.properties
     @Value("${tmdb.api.key}")
     private String apiKey;
 
-    // Værktøjet der laver opkald på internettet
     private final RestTemplate restTemplate = new RestTemplate();
     private final String BASE_URL = "https://api.themoviedb.org/3";
 
-    // Metoden vi kalder, når vi vil søge efter en film
     public List<TmdbMovie> searchMovies(String query) {
-        // Vi bygger den fulde URL. Vi sætter language=da-DK for at få danske titler og beskrivelser hvis muligt!
         String url = BASE_URL + "/search/movie?api_key=" + apiKey + "&query=" + query + "&language=da-DK";
+        return fetchFromTmdb(url);
+    }
 
+    public List<TmdbMovie> getPopularMovies() {
+        String url = BASE_URL + "/movie/popular?api_key=" + apiKey + "&language=da-DK&region=DK";
+        return fetchFromTmdb(url);
+    }
+
+    public List<TmdbMovie> getNowPlayingMovies() {
+        String url = BASE_URL + "/movie/now_playing?api_key=" + apiKey + "&language=da-DK&region=DK";
+        return fetchFromTmdb(url);
+    }
+
+    public List<TmdbMovie> getUpcomingMovies() {
+        String url = BASE_URL + "/movie/upcoming?api_key=" + apiKey + "&language=da-DK&region=DK";
+        return fetchFromTmdb(url);
+    }
+
+    // Hjælpemetode så vi ikke gentager den samme try/catch 4 gange
+    private List<TmdbMovie> fetchFromTmdb(String url) {
         try {
-            // Gå på nettet, hent dataen, og lav den om til et TmdbResponse objekt
             TmdbResponse response = restTemplate.getForObject(url, TmdbResponse.class);
-
             if (response != null && response.getResults() != null) {
-                return response.getResults(); // Returner listen med film
+                return response.getResults();
             }
         } catch (Exception e) {
             System.out.println("Fejl ved kontakt til TMDB: " + e.getMessage());
         }
-
-        // Hvis noget gik galt, returnerer vi bare en tom liste
         return new ArrayList<>();
     }
 }

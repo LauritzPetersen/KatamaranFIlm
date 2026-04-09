@@ -44,4 +44,10 @@ public class JdbcRatingRepository implements RatingRepository {
             return r;
         }, movieId);
     }
+
+    @Override
+    public void deleteAllByMovieId(int movieId) {
+        String sql = "DELETE FROM ratings WHERE movie_id = ?";
+        jdbcTemplate.update(sql, movieId);
+    }
 }

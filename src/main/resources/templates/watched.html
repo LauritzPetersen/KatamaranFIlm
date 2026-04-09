@@ -2,67 +2,77 @@
 <html lang="da" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Sete Film - Vores Filmliste</title>
+    <title>Sete Film - KatamaranFilm</title>
     <style>
-        body { font-family: sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: auto; }
-        .nav { text-align: right; margin-bottom: 20px; }
-        .box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        /* Læg mærke til 'gap: 15px;' herunder, som giver luft mellem billede og tekst */
-        .movie-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 15px; }
-        .movie-item:last-child { border-bottom: none; }
-        a.nav-link { margin-right: 15px; text-decoration: none; color: #007bff; font-weight: bold; }
+        body { font-family: 'Helvetica Neue', sans-serif; background-color: #141414; color: white; margin: 0; padding: 0; overflow-x: hidden; }
+        .nav-bar { background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav-links a { color: white; text-decoration: none; margin-right: 20px; font-weight: bold; font-size: 1.1em; transition: color 0.3s; }
+        .nav-links a:hover { color: #ffc107; }
+
+        .container { padding: 20px 40px; }
+
+        .row-wrapper { position: relative; margin-bottom: 40px; }
+        .movie-row { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px 0; justify-content: center;} /* Her bruger vi wrap i stedet for scroll, da de skal vises i et stort grid ligesom "My List" på Netflix */
+
+        .movie-card { width: 200px; position: relative; border-radius: 8px; transition: transform 0.3s; background: #222; }
+        .movie-card:hover { transform: scale(1.1); z-index: 10; box-shadow: 0 10px 20px rgba(0,0,0,0.8); }
+        .movie-poster { width: 100%; height: 300px; object-fit: cover; border-radius: 8px; display: block; }
+
+        .card-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); border-radius: 8px; opacity: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.3s; text-align: center; padding: 10px; box-sizing: border-box; }
+        .movie-card:hover .card-overlay { opacity: 1; }
+
+        .action-btn { background-color: #ffc107; color: black; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 15px; text-decoration: none;}
+        .action-btn:hover { background-color: #e0a800; }
+
+        /* Scoren der sidder permanent oppe i hjørnet! */
+        .score-badge { position: absolute; top: 10px; left: -10px; background: #ffc107; color: black; font-weight: bold; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.5); z-index: 5; font-size: 1.1em;}
+
+        .delete-x { position: absolute; top: -10px; right: -10px; background: #e50914; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; font-weight: bold; font-size: 1em; cursor: pointer; z-index: 15; opacity: 0; transition: opacity 0.3s, transform 0.2s; display: flex; justify-content: center; align-items: center;}
+        .movie-card:hover .delete-x { opacity: 1; }
+        .delete-x:hover { transform: scale(1.2); }
     </style>
 </head>
 <body>
 
+<div class="nav-bar">
+    <div class="nav-links">
+        <a href="/" style="color: #e50914; font-size: 1.5em;">KatamaranFilm</a>
+        <a href="/" style="color: #888; font-weight: normal;">Hjem</a>
+        <a href="/watchlist">Watchlist</a>
+        <a href="/watched" style="color: white;">Sete Film</a>
+    </div>
+    <div>
+        Logget ind som: <span th:text="${loggedInUser.name}" style="color: #ffc107; margin-right:15px;"></span>
+        <a href="/logout" style="color: white; text-decoration: none;">Log ud</a>
+    </div>
+</div>
+
 <div class="container">
-    <div class="nav">
-        <a href="/watchlist" class="nav-link">⬅️ Gå til Watchlist</a>
-        <strong>Logget ind som: <span th:text="${loggedInUser.name}"></span></strong> |
-        <a href="/logout">Log ud</a>
+    <h1 style="text-align: center; margin-bottom: 40px;">Film Vi Har Set 🏆</h1>
+
+    <div th:if="${movies.isEmpty()}" style="text-align: center; color: #888;">
+        <h2>I har ikke set nogen film endnu.</h2>
     </div>
 
-    <h1>Film vi har set 🏆</h1>
+    <div class="movie-row">
+        <div th:each="movie : ${movies}" class="movie-card">
 
-    <div style="margin-bottom: 20px;">
-        <input type="text" id="localSearch" onkeyup="filterMovies()" placeholder="🔍 Find en film på listen..." style="width: 100%; padding: 12px; font-size: 1.1em; border-radius: 8px; border: 2px solid #ccc;">
-    </div>
+            <div class="score-badge" th:if="${movie.averageScore > 0}">⭐ <span th:text="${movie.averageScore}"></span></div>
+            <div class="score-badge" th:unless="${movie.averageScore > 0}" style="background: #ccc;">Ingen scores</div>
 
-    <script>
-        function filterMovies() {
-            let input = document.getElementById('localSearch').value.toLowerCase();
-            let items = document.getElementsByClassName('movie-item');
+            <form th:action="@{/watched/delete}" method="post" onsubmit="return confirm('Vil du slette filmen OG alle jeres anmeldelser af den permanent?');">
+                <input type="hidden" name="movieId" th:value="${movie.id}">
+                <button type="submit" class="delete-x" title="Slet permanent">✖</button>
+            </form>
 
-            for (let i = 0; i < items.length; i++) {
-                let text = items[i].innerText.toLowerCase();
-                if (text.includes(input)) {
-                    items[i].style.display = "flex";
-                } else {
-                    items[i].style.display = "none";
-                }
-            }
-        }
-    </script>
+            <img th:if="${movie.posterUrl != null}" th:src="${movie.posterUrl}" class="movie-poster">
+            <div th:unless="${movie.posterUrl != null}" class="movie-poster" style="background: #333;" th:text="${movie.title}"></div>
 
-    <div class="box">
-        <p th:if="${movies.isEmpty()}" style="color: #777;">I har ikke set nogen film endnu. Kom i gang!</p>
+            <div class="card-overlay">
+                <strong th:text="${movie.title}"></strong>
+                <span th:text="${movie.releaseYear}" style="font-size: 0.8em; color: #aaa;"></span>
 
-        <div th:each="movie : ${movies}" class="movie-item">
-
-            <img th:if="${movie.posterUrl != null}" th:src="${movie.posterUrl}" style="width: 60px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-
-            <div style="flex-grow: 1;">
-                <a th:href="@{/watched/{id}(id=${movie.id})}" style="text-decoration: none; color: black;">
-                    <strong th:text="${movie.title}" style="font-size: 1.2em;">Titel</strong>
-                </a>
-                <span th:text="' (' + ${movie.releaseYear} + ')'" style="color: #666;"> (År)</span>
-                <br>
-                <span style="font-size: 0.9em; color: #555;" th:text="${movie.genre}">Genre</span>
-            </div>
-
-            <div style="font-size: 1.2em; font-weight: bold; color: #ffc107;">
-                ⭐ <span th:text="${movie.averageScore > 0 ? movie.averageScore : '--'}"></span> / 10
+                <a class="action-btn" th:href="@{/watched/{id}(id=${movie.id})}">Afgiv Score ✏️</a>
             </div>
         </div>
     </div>

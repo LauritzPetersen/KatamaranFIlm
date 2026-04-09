@@ -11,4 +11,5 @@ public interface MovieRepository {
     void updateStatus(int movieId, String newStatus);
     Optional<Movie> findById(int id);
     Optional<Movie> findByTmdbId(int tmdbId);
+    void deleteById(int id);
 }

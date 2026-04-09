@@ -53,4 +53,8 @@ public class RatingService {
     public List<Rating> getRatingsForMovie(int movieId) {
         return ratingRepository.findAllByMovieId(movieId);
     }
+
+    public void deleteRatingsForMovie(int movieId) {
+        ratingRepository.deleteAllByMovieId(movieId);
+    }
 }

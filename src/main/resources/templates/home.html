@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="da" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Forside - KatamaranFilm</title>
+    <style>
+        /* --- NETFLIX DARK THEME CSS --- */
+        body { font-family: 'Helvetica Neue', sans-serif; background-color: #141414; color: white; margin: 0; padding: 0; overflow-x: hidden; }
+        .nav-bar { background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav-links a { color: white; text-decoration: none; margin-right: 20px; font-weight: bold; font-size: 1.1em; transition: color 0.3s; }
+        .nav-links a:hover { color: #ffc107; }
+
+        .container { padding: 20px 40px; }
+        h2 { margin-bottom: 5px; font-size: 1.5em; text-shadow: 1px 1px 2px black; }
+
+        /* Karrusellen */
+        .row-wrapper { position: relative; margin-bottom: 40px; }
+        .movie-row { display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 15px; padding: 20px 0; }
+        .movie-row::-webkit-scrollbar { display: none; } /* Skjuler scrollbar */
+
+        .movie-card { flex: 0 0 auto; width: 180px; position: relative; border-radius: 8px; transition: transform 0.3s; background: #222; }
+        .movie-card:hover { transform: scale(1.1); z-index: 10; box-shadow: 0 10px 20px rgba(0,0,0,0.8); }
+
+        .movie-poster { width: 100%; height: 270px; object-fit: cover; border-radius: 8px; display: block; }
+        .no-poster { width: 100%; height: 270px; background: #333; border-radius: 8px; display: flex; justify-content: center; align-items: center; text-align: center; padding: 10px; box-sizing: border-box; }
+
+        /* Magien der kun vises på hover */
+        .card-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); border-radius: 8px; opacity: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.3s; text-align: center; padding: 10px; box-sizing: border-box; }
+        .movie-card:hover .card-overlay { opacity: 1; }
+
+        .action-btn { background-color: #e50914; color: white; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        .action-btn:hover { background-color: #f40612; }
+
+        /* Scroll knapper */
+        .scroll-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.6); color: white; border: none; font-size: 2em; cursor: pointer; z-index: 20; height: 100%; padding: 0 15px; opacity: 0; transition: opacity 0.3s; }
+        .row-wrapper:hover .scroll-btn { opacity: 1; }
+        .scroll-left { left: -40px; }
+        .scroll-right { right: -40px; }
+
+        /* Søgefelt */
+        .search-box { text-align: center; margin: 40px 0; }
+        .search-box input { width: 50%; padding: 15px; border-radius: 30px; border: none; font-size: 1.2em; background: rgba(255,255,255,0.2); color: white; outline: none; text-align: center;}
+        .search-box input::placeholder { color: #ccc; }
+        .search-box input:focus { background: rgba(255,255,255,0.3); }
+    </style>
+</head>
+<body>
+
+<div class="nav-bar">
+    <div class="nav-links">
+        <a href="/" style="color: #e50914; font-size: 1.5em;">KatamaranFilm</a>
+        <a href="/watchlist">Watchlist</a>
+        <a href="/watched">Sete Film</a>
+    </div>
+    <div>
+        Logget ind som: <span th:text="${loggedInUser.name}" style="color: #ffc107; margin-right:15px;"></span>
+        <a href="/logout" style="color: white; text-decoration: none;">Log ud</a>
+    </div>
+</div>
+
+<div class="container">
+
+    <div th:if="${param.error}" style="background: #e50914; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px;">
+        <strong>🚨 Hov!</strong> <span th:text="${param.error}"></span>
+    </div>
+
+    <div class="search-box">
+        <form th:action="@{/}" method="get">
+            <input type="text" name="query" th:value="${searchQuery}" placeholder="🔍 Søg efter film på TMDB...">
+        </form>
+    </div>
+
+    <div th:if="${searchResults != null}">
+        <h2>Søgeresultater for "<span th:text="${searchQuery}"></span>" <a href="/" style="font-size: 0.5em; color: #888;">(Ryd søgning)</a></h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+            <div th:each="tmdb : ${searchResults}" class="movie-card">
+                <img th:if="${tmdb.fullPosterUrl != null}" th:src="${tmdb.fullPosterUrl}" class="movie-poster">
+                <div th:unless="${tmdb.fullPosterUrl != null}" class="no-poster" th:text="${tmdb.title}"></div>
+
+                <div class="card-overlay">
+                    <strong th:text="${tmdb.title}"></strong>
+                    <span th:text="${tmdb.releaseDate != null ? tmdb.releaseDate : 'Ukendt'}" style="font-size: 0.8em; color: #aaa;"></span>
+
+                    <form th:action="@{/watchlist/add-tmdb}" method="post" style="width: 100%;">
+                        <input type="hidden" name="tmdbId" th:value="${tmdb.id}">
+                        <input type="hidden" name="title" th:value="${tmdb.title}">
+                        <input type="hidden" name="releaseDate" th:value="${tmdb.releaseDate}">
+                        <input type="hidden" name="posterUrl" th:value="${tmdb.fullPosterUrl}">
+                        <input type="hidden" name="genre" th:value="${tmdb.translatedGenres}">
+                        <button type="submit" class="action-btn">➕ Til Watchlist</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${searchResults == null}">
+
+        <h2>Populære på TMDB</h2>
+        <div class="row-wrapper">
+            <button class="scroll-btn scroll-left" onclick="scrollRow('pop-row', 'left')">❮</button>
+            <div class="movie-row" id="pop-row">
+                <div th:each="tmdb : ${popular}" class="movie-card">
+                    <img th:if="${tmdb.fullPosterUrl != null}" th:src="${tmdb.fullPosterUrl}" class="movie-poster">
+                    <div th:unless="${tmdb.fullPosterUrl != null}" class="no-poster" th:text="${tmdb.title}"></div>
+
+                    <div class="card-overlay">
+                        <strong th:text="${tmdb.title}"></strong>
+                        <span th:text="${tmdb.releaseDate != null ? tmdb.releaseDate : 'Ukendt'}" style="font-size: 0.8em; color: #aaa;"></span>
+
+                        <form th:action="@{/watchlist/add-tmdb}" method="post" style="width: 100%;">
+                            <input type="hidden" name="tmdbId" th:value="${tmdb.id}">
+                            <input type="hidden" name="title" th:value="${tmdb.title}"><input type="hidden" name="releaseDate" th:value="${tmdb.releaseDate}">
+                            <input type="hidden" name="posterUrl" th:value="${tmdb.fullPosterUrl}">
+                            <input type="hidden" name="genre" th:value="${tmdb.translatedGenres}">
+                            <button type="submit" class="action-btn">➕ Til Watchlist</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <button class="scroll-btn scroll-right" onclick="scrollRow('pop-row', 'right')">❯</button>
+        </div>
+
+        <h2>I Biografen Lige Nu</h2>
+        <div class="row-wrapper">
+            <button class="scroll-btn scroll-left" onclick="scrollRow('now-row', 'left')">❮</button>
+            <div class="movie-row" id="now-row">
+                <div th:each="tmdb : ${nowPlaying}" class="movie-card">
+                    <img th:if="${tmdb.fullPosterUrl != null}" th:src="${tmdb.fullPosterUrl}" class="movie-poster">
+                    <div th:unless="${tmdb.fullPosterUrl != null}" class="no-poster" th:text="${tmdb.title}"></div>
+
+                    <div class="card-overlay">
+                        <strong th:text="${tmdb.title}"></strong>
+                        <form th:action="@{/watchlist/add-tmdb}" method="post" style="width: 100%;">
+                            <input type="hidden" name="tmdbId" th:value="${tmdb.id}"><input type="hidden" name="title" th:value="${tmdb.title}">
+                            <input type="hidden" name="posterUrl" th:value="${tmdb.fullPosterUrl}">
+                            <button type="submit" class="action-btn">➕ Til Watchlist</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <button class="scroll-btn scroll-right" onclick="scrollRow('now-row', 'right')">❯</button>
+        </div>
+
+        <h2>Kommende Film</h2>
+        <div class="row-wrapper">
+            <button class="scroll-btn scroll-left" onclick="scrollRow('up-row', 'left')">❮</button>
+            <div class="movie-row" id="up-row">
+                <div th:each="tmdb : ${upcoming}" class="movie-card">
+                    <img th:if="${tmdb.fullPosterUrl != null}" th:src="${tmdb.fullPosterUrl}" class="movie-poster">
+                    <div th:unless="${tmdb.fullPosterUrl != null}" class="no-poster" th:text="${tmdb.title}"></div>
+
+                    <div class="card-overlay">
+                        <strong th:text="${tmdb.title}"></strong>
+                        <form th:action="@{/watchlist/add-tmdb}" method="post" style="width: 100%;">
+                            <input type="hidden" name="tmdbId" th:value="${tmdb.id}"><input type="hidden" name="title" th:value="${tmdb.title}">
+                            <input type="hidden" name="posterUrl" th:value="${tmdb.fullPosterUrl}">
+                            <button type="submit" class="action-btn">➕ Til Watchlist</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <button class="scroll-btn scroll-right" onclick="scrollRow('up-row', 'right')">❯</button>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    function scrollRow(rowId, direction) {
+        const row = document.getElementById(rowId);
+        const scrollAmount = 600; // Hvor langt den rykker pr. klik
+        if (direction === 'left') {
+            row.scrollLeft -= scrollAmount;
+        } else {
+            row.scrollLeft += scrollAmount;
+        }
+    }
+</script>
+
+</body>
+</html>
