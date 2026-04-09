@@ -50,9 +50,11 @@ public class MovieService {
     public List<Movie> getWatchedMovies() {
         List<Movie> watched = movieRepository.findAllByStatus("WATCHED");
 
-        // Kør igennem alle filmene og udregn gennemsnittet!
         for (Movie movie : watched) {
+            // 1. Hent gennemsnittet
             movie.setAverageScore(ratingService.calculateAverage(movie.getId()));
+            // 2. NY: Hent alle ratings, så vi ved hvem der har stemt!
+            movie.setRatings(ratingService.getRatingsForMovie(movie.getId()));
         }
 
         return watched;

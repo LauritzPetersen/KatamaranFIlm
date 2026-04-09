@@ -69,4 +69,14 @@ public class Movie {
 
     public String getAddedByColor() { return addedByColor; }
     public void setAddedByColor(String addedByColor) { this.addedByColor = addedByColor; }
+
+    public boolean hasUserRated(int userId) {
+        if (ratings == null) return false;
+        for (Rating r : ratings) {
+            if (r.getUserId() == userId) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

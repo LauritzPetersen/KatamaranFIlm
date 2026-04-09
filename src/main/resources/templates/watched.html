@@ -87,6 +87,12 @@
             <div class="score-badge" th:if="${movie.averageScore > 0}">⭐ <span th:text="${movie.averageScore}"></span></div>
             <div class="score-badge" th:unless="${movie.averageScore > 0}" style="background: #ccc;">Ingen scores</div>
 
+            <div class="score-badge"
+                 th:if="${!movie.hasUserRated(loggedInUser.id)}"
+                 style="top: 40px; background: #666; font-size: 0.7em; padding: 5px; width: 90px; text-align: center;">
+                Mangler din score
+            </div>
+
             <form th:action="@{/watched/delete}" method="post" class="ajax-form remove-on-success" data-confirm="Vil du slette filmen OG alle jeres anmeldelser af den permanent?">
                 <input type="hidden" name="movieId" th:value="${movie.id}">
                 <button type="submit" class="delete-x" title="Slet permanent">✖</button>
