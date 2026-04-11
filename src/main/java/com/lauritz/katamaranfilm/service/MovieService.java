@@ -48,8 +48,13 @@ public class MovieService {
     }
 
     public List<Movie> getWatchedMovies() {
-        // Databasen har nu allerede regnet gennemsnittet ud! Ingen grund til at loope og lave ekstra SQL-kald.
-        return movieRepository.findAllByStatus("WATCHED");
+        List<Movie> watched = movieRepository.findAllByStatus("WATCHED");
+
+        for (Movie movie : watched) {
+            movie.setRatings(ratingService.getRatingsForMovie(movie.getId()));
+        }
+
+        return watched;
     }
 
     public void markMovieAsWatched(int movieId) {
