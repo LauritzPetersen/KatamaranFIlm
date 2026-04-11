@@ -50,4 +50,19 @@ public class TmdbService {
         }
         return new ArrayList<>();
     }
+
+    public TmdbMovie discoverRandomMovie(int genreId, int year) {
+        // Vi bruger TMDB's "discover" endpoint
+        String url = BASE_URL + "/discover/movie?api_key=" + apiKey +
+                "&language=da-DK&with_genres=" + genreId +
+                "&primary_release_year=" + year;
+
+        List<TmdbMovie> movies = fetchFromTmdb(url);
+
+        if (movies != null && !movies.isEmpty()) {
+            // Træk lod blandt de resultater TMDB finder på side 1
+            return movies.get(new java.util.Random().nextInt(movies.size()));
+        }
+        return null;
+    }
 }

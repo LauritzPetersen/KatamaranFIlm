@@ -31,28 +31,18 @@ public class WatchListController {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) return "redirect:/login";
 
-        List<Movie> watchlist = movieService.getWatchlist();
         List<User> users = userService.getAllUsers();
 
-        java.util.Map<User, java.util.List<Movie>> userMoviesMap = new java.util.LinkedHashMap<>();
-        for (User u : users) {
-            java.util.List<Movie> userMovies = new java.util.ArrayList<>();
-            for (Movie m : watchlist) {
-                if (m.getAddedByUserId() == u.getId()) {
-                    userMovies.add(m);
-                }
-            }
-            if (!userMovies.isEmpty()) {
-                userMoviesMap.put(u, userMovies);
-            }
-        }
+        // BAM! Nu klarer Service-laget det tunge løft i én linje:
+        java.util.Map<User, List<Movie>> userMoviesMap = movieService.getGroupedWatchlist(users);
 
         model.addAttribute("userMoviesMap", userMoviesMap);
-        model.addAttribute("movies", watchlist);
+        model.addAttribute("movies", movieService.getWatchlist()); // Stadig brug for denne til JS søgefilteret
         model.addAttribute("loggedInUser", loggedInUser);
 
         return "watchlist";
     }
+
 
     @PostMapping("/watchlist/add-tmdb")
     @ResponseBody // Fortæller Spring, at vi ikke vil reloade en side, men bare sende data tilbage

@@ -4,51 +4,99 @@
     <meta charset="UTF-8">
     <title th:text="${movie.title} + ' - Detaljer'"></title>
     <style>
-        body { font-family: sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: auto; }
-        .nav { text-align: right; margin-bottom: 20px; }
-        .box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; }
-        input, button { padding: 10px; margin: 10px 0; font-size: 1.1em; border-radius: 4px; border: 1px solid #ccc; }
-        button { background-color: #ffc107; color: black; border: none; font-weight: bold; cursor: pointer; }
-        .error-box { background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 15px; text-align: left;}
-        a.nav-link { margin-right: 15px; text-decoration: none; color: #007bff; font-weight: bold; }
+        body { font-family: 'Helvetica Neue', sans-serif; background-color: #141414; color: white; margin: 0; padding: 0; overflow-x: hidden; }
+
+        /* Top Navigation som på de andre sider */
+        .nav-bar { background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav-links a { color: white; text-decoration: none; margin-right: 20px; font-weight: bold; font-size: 1.1em; transition: color 0.3s; }
+        .nav-links a:hover { color: #ffc107; }
+
+        /* Hovedindhold */
+        .details-container {
+            display: flex;
+            gap: 40px;
+            max-width: 900px;
+            margin: 30px auto;
+            background: #222;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            align-items: flex-start;
+        }
+
+        .poster-col { flex: 0 0 300px; }
+        .poster-col img { width: 100%; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .no-poster { width: 100%; height: 450px; background: #333; border-radius: 8px; display: flex; justify-content: center; align-items: center; text-align: center; }
+
+        .info-col { flex: 1; display: flex; flex-direction: column; }
+
+        h1 { margin-top: 0; margin-bottom: 5px; font-size: 2.5em; text-shadow: 1px 1px 2px black; }
+        .meta-data { color: #aaa; margin-top: 0; font-size: 1.1em; }
+
+        .score-display { font-size: 3.5em; margin: 15px 0; color: #fff; font-weight: bold; }
+        .score-display span.max { font-size: 0.4em; color: #888; font-weight: normal; }
+
+        /* Anmeldelses boksen */
+        .ratings-box { background: rgba(0,0,0,0.3); padding: 15px 20px; border-radius: 8px; margin: 20px 0; max-height: 180px; overflow-y: auto; }
+        .ratings-box::-webkit-scrollbar { width: 8px; }
+        .ratings-box::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        .rating-item { margin-bottom: 10px; display: flex; align-items: center; font-size: 1.1em; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
+        .rating-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+        /* Formular og knapper */
+        .action-zone { display: flex; gap: 15px; margin-top: 20px; align-items: stretch; }
+        .score-input { width: 100px; padding: 12px; border-radius: 6px; border: 1px solid #444; background: #111; color: white; text-align: center; font-size: 1.2em; outline: none; }
+        .score-input:focus { border-color: #ffc107; }
+
+        .action-btn { background-color: #ffc107; color: black; border: none; padding: 0 25px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1.1em; transition: 0.3s; flex: 1; }
+        .action-btn:hover { background-color: #e0a800; transform: scale(1.02); }
+
+        .back-btn { background-color: #444; color: white; border: none; padding: 0 20px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 1.1em; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
+        .back-btn:hover { background-color: #666; transform: scale(1.02); }
+
+        .error-box { background-color: #e50914; color: white; padding: 15px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="nav">
-        <a href="/watched" class="nav-link">⬅️ Tilbage til Sete film</a>
-        <strong>Logget ind som: <span th:text="${loggedInUser.name}"></span></strong> |
-        <a href="/logout">Log ud</a>
+<div class="nav-bar">
+    <div class="nav-links">
+        <a href="/" style="color: #e50914; font-size: 1.5em;">KatamaranFilm</a>
+        <a href="/" style="color: #888; font-weight: normal;">Hjem</a>
+        <a href="/watchlist">Watchlist</a>
+        <a href="/watched" style="color: white;">Sete Film</a>
+    </div>
+    <div>
+        Logget ind som: <span th:text="${loggedInUser.name}" style="color: #ffc107; margin-right:15px;"></span>
+        <a href="/logout" style="color: white; text-decoration: none;">Log ud</a>
+    </div>
+</div>
+
+<div class="details-container">
+
+    <div class="poster-col">
+        <img th:if="${movie.posterUrl != null}" th:src="${movie.posterUrl}" alt="Film Plakat">
+        <div th:unless="${movie.posterUrl != null}" class="no-poster" th:text="${movie.title}"></div>
     </div>
 
-    <div class="box">
+    <div class="info-col">
+        <h1 th:text="${movie.title}">Film Titel</h1>
+        <p class="meta-data" th:text="${movie.genre} + ' | Udgivet: ' + ${movie.releaseYear}"></p>
 
-        <img th:if="${movie.posterUrl != null}" th:src="${movie.posterUrl}" style="width: 250px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); margin-bottom: 20px;">
-
-        <h1 th:text="${movie.title}" style="margin-bottom: 5px; margin-top: 0;">Film Titel</h1>
-        <p style="color: #666; margin-top: 0;" th:text="${movie.genre} + ' | Udgivet: ' + ${movie.releaseYear}">Genre og År</p>
-
-        <h2 style="font-size: 3em; margin: 20px 0; color: #333;">
-            ⭐ <span th:text="${movie.averageScore > 0 ? movie.averageScore : '--'}"></span> <span style="font-size: 0.4em; color: #888;">/ 10</span>
-        </h2>
-        <p style="color: #888;">Gennemsnitsscore</p>
-
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
-
-        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: left; margin-bottom: 30px;">
-            <h4 style="margin-top: 0;">Vores anmeldelser:</h4>
-            <p th:if="${movie.ratings.isEmpty()}" style="color: #777; font-style: italic;">Ingen har givet en score endnu.</p>
-
-            <div th:each="r : ${movie.ratings}" style="margin-bottom: 8px; display: flex; align-items: center;">
-                <span th:style="'display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:8px; background-color:' + ${r.userColor}"></span>
-                <strong th:text="${r.userName}" style="margin-right: 10px;">Navn</strong>
-                <span style="color: #ffc107; font-weight: bold;">⭐ <span th:text="${r.score}"></span></span>
-            </div>
+        <div class="score-display">
+            ⭐ <span th:text="${movie.averageScore > 0 ? movie.averageScore : '--'}"></span> <span class="max">/ 10</span>
         </div>
 
-        <h3>Hvad synes du om filmen?</h3>
+        <div class="ratings-box">
+            <h4 style="margin-top: 0; color: #ffc107; border-bottom: 1px solid #555; padding-bottom: 5px;">Vores Anmeldelser</h4>
+            <p th:if="${movie.ratings.isEmpty()}" style="color: #aaa; font-style: italic; margin: 0;">Ingen har givet en score endnu.</p>
+
+            <div th:each="r : ${movie.ratings}" class="rating-item">
+                <span th:style="'display:inline-block; width:14px; height:14px; border-radius:50%; margin-right:10px; background-color:' + ${r.userColor}"></span>
+                <strong th:text="${r.userName}" style="margin-right: auto;">Navn</strong>
+                <span style="color: #ffc107; font-weight: bold; font-size: 1.2em;">⭐ <span th:text="${r.score}"></span></span>
+            </div>
+        </div>
 
         <div th:if="${errors != null}" class="error-box">
             <ul style="margin: 0; padding-left: 20px;">
@@ -56,11 +104,14 @@
             </ul>
         </div>
 
+        <h3 style="margin-bottom: 5px; color: #ddd;">Hvad synes du om filmen?</h3>
+
         <form th:action="@{/watched/{id}/rate(id=${movie.id})}" method="post" th:object="${newRating}">
-            <label style="font-weight: bold; display: block;">Din score (1.0 til 10.0):</label>
-            <input type="number" step="0.1" min="1.0" max="10.0" th:field="*{score}" placeholder="f.eks. 8.5" required style="width: 120px; text-align: center;">
-            <br>
-            <button type="submit">Gem min score!</button>
+            <div class="action-zone">
+                <input type="number" step="0.1" min="1.0" max="10.0" th:field="*{score}" placeholder="Score" required class="score-input" title="Indtast en score mellem 1.0 og 10.0">
+                <button type="submit" class="action-btn">Gem Score ✏️</button>
+                <a href="/watched" class="back-btn">⬅️ Tilbage</a>
+            </div>
         </form>
 
     </div>

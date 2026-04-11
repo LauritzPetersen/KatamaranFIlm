@@ -75,6 +75,14 @@
             <option value="Sci-Fi">Sci-Fi</option>
             <option value="Thriller">Thriller</option>
         </select>
+
+        <select id="sortFilter" onchange="sortMovies()">
+            <option value="newest">Nyeste tilføjet</option>
+            <option value="scoreDesc">Højeste Score ⭐</option>
+            <option value="scoreAsc">Laveste Score 💩</option>
+            <option value="yearDesc">Årstal (Nyeste først)</option>
+            <option value="yearAsc">Årstal (Ældste først)</option>
+        </select>
     </div>
 
     <div th:if="${movies.isEmpty()}" style="text-align: center; color: #888;">
@@ -82,7 +90,10 @@
     </div>
 
     <div class="movie-row">
-        <div th:each="movie : ${movies}" class="movie-card">
+        <div th:each="movie : ${movies}" class="movie-card"
+             th:data-id="${movie.id}"
+             th:data-score="${movie.averageScore}"
+             th:data-year="${movie.releaseYear}">
 
             <div class="score-badge" th:if="${movie.averageScore > 0}">⭐ <span th:text="${movie.averageScore}"></span></div>
             <div class="score-badge" th:unless="${movie.averageScore > 0}" style="background: #ccc;">Ingen scores</div>
@@ -133,6 +144,32 @@
                 card.style.display = 'none';
             }
         });
+    }
+
+    function sortMovies() {
+        const sortValue = document.getElementById('sortFilter').value;
+        const container = document.querySelector('.movie-row');
+
+        // Hent alle film-kort og lav dem om til et array, vi kan sortere
+        const cards = Array.from(container.querySelectorAll('.movie-card'));
+
+        cards.sort((a, b) => {
+            if (sortValue === 'scoreDesc') {
+                return parseFloat(b.dataset.score) - parseFloat(a.dataset.score);
+            } else if (sortValue === 'scoreAsc') {
+                return parseFloat(a.dataset.score) - parseFloat(b.dataset.score);
+            } else if (sortValue === 'yearDesc') {
+                return parseInt(b.dataset.year) - parseInt(a.dataset.year);
+            } else if (sortValue === 'yearAsc') {
+                return parseInt(a.dataset.year) - parseInt(b.dataset.year);
+            } else {
+                // 'newest' (Standard ID sortering)
+                return parseInt(b.dataset.id) - parseInt(a.dataset.id);
+            }
+        });
+
+        // Sæt de sorterede kort tilbage ind i kassen
+        cards.forEach(card => container.appendChild(card));
     }
 
     // --- AJAX MAGI ---

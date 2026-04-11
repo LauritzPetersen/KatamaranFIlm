@@ -19,11 +19,14 @@ public class JdbcMovieRepository implements MovieRepository {
 
     @Override
     public List<Movie> findAllByStatus(String status) {
-        // JOIN slår tabellerne sammen, så vi får "added_by" navnet med
-        String sql = "SELECT m.*, u.name AS added_by_name, u.color_code AS added_by_color " +
+        // Vi tilføjer en LEFT JOIN til ratings og udregner gennemsnittet (AVG) direkte i databasen!
+        String sql = "SELECT m.*, u.name AS added_by_name, u.color_code AS added_by_color, " +
+                "ROUND(AVG(r.score), 1) AS avg_score " +
                 "FROM movies m " +
                 "JOIN users u ON m.added_by_user_id = u.id " +
-                "WHERE m.status = ?";
+                "LEFT JOIN ratings r ON m.id = r.movie_id " +
+                "WHERE m.status = ? " +
+                "GROUP BY m.id, u.name, u.color_code";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             Movie m = new Movie();
@@ -35,10 +38,14 @@ public class JdbcMovieRepository implements MovieRepository {
             m.setPosterUrl(rs.getString("poster_url"));
             m.setStatus(rs.getString("status"));
             m.setAddedByUserId(rs.getInt("added_by_user_id"));
-
-            // Fyld de nye lommer
             m.setAddedByName(rs.getString("added_by_name"));
             m.setAddedByColor(rs.getString("added_by_color"));
+
+            // Hent det færdige gennemsnit fra databasen
+            if (rs.getObject("avg_score") != null) {
+                m.setAverageScore(rs.getDouble("avg_score"));
+            }
+
             return m;
         }, status);
     }
@@ -65,11 +72,14 @@ public class JdbcMovieRepository implements MovieRepository {
 
     @Override
     public Optional<Movie> findById(int id) {
-        // Samme JOIN trick her, så vi kender navnet på detaljesiden
-        String sql = "SELECT m.*, u.name AS added_by_name, u.color_code AS added_by_color " +
+        // Vi tilføjer LEFT JOIN og beder SQL regne gennemsnittet (avg_score) for denne specifikke film
+        String sql = "SELECT m.*, u.name AS added_by_name, u.color_code AS added_by_color, " +
+                "ROUND(AVG(r.score), 1) AS avg_score " +
                 "FROM movies m " +
                 "JOIN users u ON m.added_by_user_id = u.id " +
-                "WHERE m.id = ?";
+                "LEFT JOIN ratings r ON m.id = r.movie_id " +
+                "WHERE m.id = ? " +
+                "GROUP BY m.id, u.name, u.color_code";
 
         List<Movie> result = jdbcTemplate.query(sql, (rs, rowNum) -> {
             Movie m = new Movie();
@@ -84,6 +94,12 @@ public class JdbcMovieRepository implements MovieRepository {
 
             m.setAddedByName(rs.getString("added_by_name"));
             m.setAddedByColor(rs.getString("added_by_color"));
+
+            // Hent det udregnede gennemsnit fra SQL
+            if (rs.getObject("avg_score") != null) {
+                m.setAverageScore(rs.getDouble("avg_score"));
+            }
+
             return m;
         }, id);
 

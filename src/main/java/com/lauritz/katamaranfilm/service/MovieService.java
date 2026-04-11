@@ -48,16 +48,8 @@ public class MovieService {
     }
 
     public List<Movie> getWatchedMovies() {
-        List<Movie> watched = movieRepository.findAllByStatus("WATCHED");
-
-        for (Movie movie : watched) {
-            // 1. Hent gennemsnittet
-            movie.setAverageScore(ratingService.calculateAverage(movie.getId()));
-            // 2. NY: Hent alle ratings, så vi ved hvem der har stemt!
-            movie.setRatings(ratingService.getRatingsForMovie(movie.getId()));
-        }
-
-        return watched;
+        // Databasen har nu allerede regnet gennemsnittet ud! Ingen grund til at loope og lave ekstra SQL-kald.
+        return movieRepository.findAllByStatus("WATCHED");
     }
 
     public void markMovieAsWatched(int movieId) {
@@ -69,17 +61,13 @@ public class MovieService {
 
         if (movieOpt.isPresent()) {
             Movie movie = movieOpt.get();
-
-            // 1. Udregn gennemsnittet for netop denne film!
-            movie.setAverageScore(ratingService.calculateAverage(movie.getId()));
-
-            // 2. HER ER DEN NYE LINJE: Hent alle anmeldelserne og sæt dem fast på filmen!
+            // 1. Gennemsnittet er nu allerede sat via databasen i linjen ovenover!
+            // 2. Vi henter stadig listen af individuelle anmeldelser, så de kan vises på siden
             movie.setRatings(ratingService.getRatingsForMovie(movie.getId()));
-
             return Optional.of(movie);
         }
 
-        return Optional.empty(); // Hvis filmen ikke findes
+        return Optional.empty();
     }
 
     public void deleteMovie(int movieId) {
@@ -88,5 +76,49 @@ public class MovieService {
 
         // Når de er væk, kan vi trygt slette filmen
         movieRepository.deleteById(movieId);
+    }
+
+    public java.util.Map<com.lauritz.katamaranfilm.model.User, List<Movie>> getGroupedWatchlist(List<com.lauritz.katamaranfilm.model.User> users) {
+        List<Movie> watchlist = getWatchlist();
+        java.util.Map<com.lauritz.katamaranfilm.model.User, List<Movie>> userMoviesMap = new java.util.LinkedHashMap<>();
+
+        for (com.lauritz.katamaranfilm.model.User u : users) {
+            List<Movie> userMovies = new java.util.ArrayList<>();
+            for (Movie m : watchlist) {
+                if (m.getAddedByUserId() == u.getId()) {
+                    userMovies.add(m);
+                }
+            }
+            if (!userMovies.isEmpty()) {
+                userMoviesMap.put(u, userMovies);
+            }
+        }
+        return userMoviesMap;
+    }
+
+    public Movie getRandomWatchlistMovie() {
+        List<Movie> watchlist = getWatchlist();
+        if (watchlist != null && !watchlist.isEmpty()) {
+            return watchlist.get(new java.util.Random().nextInt(watchlist.size()));
+        }
+        return null; // Hvis listen er tom
+    }
+
+    // 2. Find en tilfældig film ud fra en bestemt genre
+    public Movie getRandomWatchlistMovieByGenre(String genre) {
+        List<Movie> watchlist = getWatchlist();
+        List<Movie> filtered = new java.util.ArrayList<>();
+
+        for (Movie m : watchlist) {
+            // Hvis filmens genre indeholder det valgte ord (f.eks. "Action")
+            if (m.getGenre() != null && m.getGenre().toLowerCase().contains(genre.toLowerCase())) {
+                filtered.add(m);
+            }
+        }
+
+        if (!filtered.isEmpty()) {
+            return filtered.get(new java.util.Random().nextInt(filtered.size()));
+        }
+        return null; // Hvis der ikke findes nogle film i den genre
     }
 }
