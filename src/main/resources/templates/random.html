@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="da" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Hvad skal vi se? - KatamaranFilm</title>
+  <style>
+    body { font-family: 'Helvetica Neue', sans-serif; background-color: #141414; color: white; margin: 0; padding: 0; }
+    .nav-bar { background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+    .nav-links a { color: white; text-decoration: none; margin-right: 20px; font-weight: bold; font-size: 1.1em; transition: color 0.3s; }
+    .nav-links a:hover { color: #ffc107; }
+
+    .container { max-width: 900px; margin: 40px auto; text-align: center; }
+
+    /* De 3 kontrolpaneler */
+    .panels-wrapper { display: flex; gap: 20px; justify-content: center; margin-bottom: 50px; }
+    .panel { background: #222; padding: 30px; border-radius: 12px; flex: 1; box-shadow: 0 4px 10px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center; align-items: center;}
+
+    select, input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 6px; border: none; background: #333; color: white; font-size: 1em; outline: none; }
+    .btn { background-color: #e50914; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 1.1em; transition: 0.3s; margin-top: auto;}
+    .btn:hover { background-color: #f40612; transform: scale(1.05); }
+
+    /* Vinder-kortet */
+    .winner-card { display: flex; background: #111; border: 2px solid #ffc107; border-radius: 12px; padding: 20px; max-width: 500px; margin: 0 auto; box-shadow: 0 0 30px rgba(255, 193, 7, 0.2); animation: popIn 0.5s ease-out; text-align: left; gap: 20px;}
+    .winner-card img { width: 150px; border-radius: 8px; object-fit: cover; }
+    @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+    .error-box { background-color: #e50914; color: white; padding: 15px; border-radius: 6px; display: inline-block; }
+  </style>
+</head>
+<body>
+
+<div class="nav-bar">
+  <div class="nav-links">
+    <a href="/" style="color: #e50914; font-size: 1.5em;">KatamaranFilm</a>
+    <a href="/">Hjem</a>
+    <a href="/watchlist">Watchlist</a>
+    <a href="/watched">Sete Film</a>
+    <a href="/hvad-skal-vi-se" style="color: #ffc107;">Lodtrækning 🎲</a>
+  </div>
+  <div>
+    Logget ind som: <span th:text="${loggedInUser.name}" style="color: #ffc107; margin-right:15px;"></span>
+    <a href="/logout" style="color: white; text-decoration: none;">Log ud</a>
+  </div>
+</div>
+
+<div class="container">
+  <h1 style="font-size: 3em; margin-bottom: 10px;">Hvad skal vi se? 🍿</h1>
+  <p style="color: #aaa; margin-bottom: 40px; font-size: 1.2em;">Lad skæbnen bestemme aftenens film!</p>
+
+  <div class="panels-wrapper">
+
+    <div class="panel">
+      <h3>1. Vores Fælles Liste</h3>
+      <p style="color:#888; font-size:0.9em; margin-bottom:20px;">Trækker en helt tilfældig film fra alt det I har gemt.</p>
+      <form th:action="@{/hvad-skal-vi-se/lokal-random}" method="post" style="width:100%; display:flex; flex-direction:column; flex:1;">
+        <button type="submit" class="btn">Træk Lod! 🎲</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h3>2. Liste med Genre</h3>
+      <form th:action="@{/hvad-skal-vi-se/lokal-genre}" method="post" style="width:100%; display:flex; flex-direction:column; flex:1;">
+        <select name="genre" required>
+          <option value="" disabled selected>Vælg en genre...</option>
+          <option value="Action">Action</option>
+          <option value="Animation">Animation</option>
+          <option value="Dokumentar">Dokumentar</option>
+          <option value="Drama">Drama</option>
+          <option value="Eventyr">Eventyr</option>
+          <option value="Familie">Familie</option>
+          <option value="Fantasy">Fantasy</option>
+          <option value="Gyser">Gyser</option>
+          <option value="Historie">Historie</option>
+          <option value="Komedie">Komedie</option>
+          <option value="Krig">Krig</option>
+          <option value="Krimi">Krimi</option>
+          <option value="Musik">Musik</option>
+          <option value="Mysterium">Mysterium</option>
+          <option value="Romantik">Romantik</option>
+          <option value="Sci-Fi">Sci-Fi</option>
+          <option value="Thriller">Thriller</option>
+          <option value="TV-film">TV-film</option>
+          <option value="Western">Western</option>
+        </select>
+        <button type="submit" class="btn">Træk Lod! 🎲</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h3>3. Det Vilde Vesten (TMDB)</h3>
+      <form th:action="@{/hvad-skal-vi-se/tmdb}" method="post" style="width:100%; display:flex; flex-direction:column; flex:1;">
+        <input type="number" name="year" placeholder="Årstal (f.eks. 1999)" required min="1900" max="2026">
+        <select name="genreId" required>
+          <option value="" disabled selected>Vælg en genre...</option>
+          <option value="28">Action</option>
+          <option value="16">Animation</option>
+          <option value="99">Dokumentar</option>
+          <option value="18">Drama</option>
+          <option value="12">Eventyr</option>
+          <option value="10751">Familie</option>
+          <option value="14">Fantasy</option>
+          <option value="27">Gyser</option>
+          <option value="36">Historie</option>
+          <option value="35">Komedie</option>
+          <option value="10752">Krig</option>
+          <option value="80">Krimi</option>
+          <option value="10402">Musik</option>
+          <option value="9648">Mysterium</option>
+          <option value="10749">Romantik</option>
+          <option value="878">Sci-Fi</option>
+          <option value="53">Thriller</option>
+          <option value="10770">TV-film</option>
+          <option value="37">Western</option>
+        </select>
+        <button type="submit" class="btn">Søg TMDB! 🌐</button>
+      </form>
+    </div>
+  </div>
+
+  <div th:if="${error != null}" class="error-box" th:text="${error}"></div>
+
+  <div th:if="${localResult != null}">
+    <h2 style="color: #ffc107;">Aftenens Film Bliver:</h2>
+    <div class="winner-card">
+      <img th:if="${localResult.posterUrl != null}" th:src="${localResult.posterUrl}">
+      <div style="display: flex; flex-direction: column; justify-content: center;">
+        <h2 style="margin: 0; font-size: 2em;" th:text="${localResult.title}"></h2>
+        <p style="color:#aaa; font-size:1.2em;" th:text="${localResult.releaseYear} + ' | ' + ${localResult.genre}"></p>
+        <p style="color:#28a745; font-weight:bold;">Tilføjet af: <span th:text="${localResult.addedByName}"></span></p>
+      </div>
+    </div>
+  </div>
+
+  <div th:if="${tmdbResult != null}">
+    <h2 style="color: #ffc107;">TMDB Foreslår:</h2>
+    <div class="winner-card">
+      <img th:if="${tmdbResult.fullPosterUrl != null}" th:src="${tmdbResult.fullPosterUrl}">
+      <div style="display: flex; flex-direction: column; justify-content: center;">
+        <h2 style="margin: 0; font-size: 2em;" th:text="${tmdbResult.title}"></h2>
+        <p style="color:#aaa; font-size:1.2em;" th:text="${tmdbResult.releaseDate} + ' | ' + ${tmdbResult.translatedGenres}"></p>
+
+        <form th:action="@{/watchlist/add-tmdb}" method="post" style="margin-top: 15px;">
+          <input type="hidden" name="tmdbId" th:value="${tmdbResult.id}">
+          <input type="hidden" name="title" th:value="${tmdbResult.title}">
+          <input type="hidden" name="releaseDate" th:value="${tmdbResult.releaseDate}">
+          <input type="hidden" name="posterUrl" th:value="${tmdbResult.fullPosterUrl}">
+          <input type="hidden" name="genre" th:value="${tmdbResult.translatedGenres}">
+          <button type="submit" class="btn" style="background:#28a745;">➕ Tilføj til Watchlist</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
